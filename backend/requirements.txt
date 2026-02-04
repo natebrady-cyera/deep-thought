@@ -16,4 +16,4 @@ pytest-asyncio==0.23.3
 pytest-cov==4.1.0
 black==23.12.1
 ruff==0.1.14
-sqlcipher3==0.5.2
+# Note: SQLite encryption (sqlcipher3) removed for MVP - can add later if needed

@@ -6,7 +6,11 @@ The Answer to Life, the Universe, and Enterprise Sales Deals.
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
+from app.core.database import init_db
 from app.routers import auth, canvases, nodes, chats, admin, health
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Create FastAPI application
 app = FastAPI(
@@ -39,10 +43,20 @@ app.include_router(admin.router, prefix=settings.api_prefix, tags=["admin"])
 @app.on_event("startup")
 async def startup_event():
     """Initialize application on startup"""
-    # TODO: Initialize database
+    logger.info("Starting Deep Thought...")
+
+    # Initialize database
+    try:
+        init_db()
+        logger.info("Database initialized successfully")
+    except Exception as e:
+        logger.error(f"Failed to initialize database: {e}")
+        raise
+
     # TODO: Check SAML configuration
     # TODO: Bootstrap admin user if needed
-    pass
+
+    logger.info("Deep Thought startup complete")
 
 
 @app.on_event("shutdown")
