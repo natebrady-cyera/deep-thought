@@ -187,9 +187,54 @@
   align-items: center;
 }
 
+.canvas-header > div {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.canvas-header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.btn-back {
+  background: none;
+  border: none;
+  color: var(--primary-color);
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+  transition: background 0.2s;
+}
+
+.btn-back:hover {
+  background: #eff6ff;
+}
+
+.canvas-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.saving-indicator {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
 .canvas-container {
   flex: 1;
   position: relative;
+}
+
+.error {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: var(--error);
+  font-size: 1.1rem;
 }
 
 /* Buttons */
