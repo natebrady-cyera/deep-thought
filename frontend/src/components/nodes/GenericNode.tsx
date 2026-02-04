@@ -2,6 +2,34 @@ import React, { useState, useRef, useEffect } from 'react'
 import { Handle, Position, NodeProps } from 'reactflow'
 import './GenericNode.css'
 
+const getNodeTypeIcon = (nodeType: string): string => {
+  const icons: { [key: string]: string } = {
+    person: '👤',
+    document: '📄',
+    meeting: '📅',
+    note: '📝',
+    action: '✓',
+    risk: '⚠️',
+    competitor: '🏢',
+    generic: '📦',
+  }
+  return icons[nodeType] || '📦'
+}
+
+const getNodeTypeLabel = (nodeType: string): string => {
+  const labels: { [key: string]: string } = {
+    person: 'Person',
+    document: 'Document',
+    meeting: 'Meeting',
+    note: 'Note',
+    action: 'Action',
+    risk: 'Risk',
+    competitor: 'Competitor',
+    generic: 'Generic',
+  }
+  return labels[nodeType] || 'Generic'
+}
+
 const GenericNode: React.FC<NodeProps> = ({ data }) => {
   const [isEditing, setIsEditing] = useState(false)
   const [content, setContent] = useState(data.content || '')
@@ -48,6 +76,9 @@ const GenericNode: React.FC<NodeProps> = ({ data }) => {
       <Handle type="target" position={Position.Top} />
 
       <div className="node-header">
+        <span className="node-type-icon" title={getNodeTypeLabel(data.nodeType || 'generic')}>
+          {getNodeTypeIcon(data.nodeType || 'generic')}
+        </span>
         {isEditingTitle ? (
           <input
             ref={titleInputRef}

@@ -30,6 +30,7 @@ const CanvasPage: React.FC = () => {
   const [saving, setSaving] = useState(false)
   const [showAddNode, setShowAddNode] = useState(false)
   const [newNodeTitle, setNewNodeTitle] = useState('')
+  const [newNodeType, setNewNodeType] = useState('person')
   const [showChat, setShowChat] = useState(false)
 
   // Load canvas and nodes
@@ -51,11 +52,12 @@ const CanvasPage: React.FC = () => {
       // Convert backend nodes to React Flow nodes
       const flowNodes: FlowNode[] = nodesData.map((node: Node) => ({
         id: String(node.id),
-        type: node.node_type,
+        type: 'generic', // Use generic component for all types
         position: { x: node.position_x, y: node.position_y },
         data: {
           ...node.data,
           label: node.title,
+          nodeType: node.node_type,
           nodeId: node.id,
           canvasId: node.canvas_id,
           onUpdate: (updates: any) => handleNodeDataUpdate(node.id, updates),
@@ -145,7 +147,7 @@ const CanvasPage: React.FC = () => {
 
       const newNode = await nodeService.createNode({
         canvas_id: Number(id),
-        node_type: 'generic',
+        node_type: newNodeType,
         title: newNodeTitle,
         position_x: centerX,
         position_y: centerY,
@@ -170,6 +172,7 @@ const CanvasPage: React.FC = () => {
       setNodes((nds) => [...nds, flowNode])
       setShowAddNode(false)
       setNewNodeTitle('')
+      setNewNodeType('person')
     } catch (error) {
       console.error('Failed to create node:', error)
       alert('Failed to create node')
@@ -237,6 +240,24 @@ const CanvasPage: React.FC = () => {
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <h2>Add New Node</h2>
             <form onSubmit={handleAddNode}>
+              <div className="form-group">
+                <label htmlFor="node-type">Node Type</label>
+                <select
+                  id="node-type"
+                  value={newNodeType}
+                  onChange={(e) => setNewNodeType(e.target.value)}
+                >
+                  <option value="person">👤 Person - Contact, stakeholder, or team member</option>
+                  <option value="document">📄 Document - Requirements, proposal, or reference</option>
+                  <option value="meeting">📅 Meeting - Call notes, discussions, or decisions</option>
+                  <option value="note">📝 Note - General information or observations</option>
+                  <option value="action">✓ Action Item - Task or next step</option>
+                  <option value="risk">⚠️ Risk - Potential issue or concern</option>
+                  <option value="competitor">🏢 Competitor - Competitive intelligence</option>
+                  <option value="generic">📦 Generic - Flexible content</option>
+                </select>
+              </div>
+
               <div className="form-group">
                 <label htmlFor="node-title">Title</label>
                 <input
