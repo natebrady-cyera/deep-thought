@@ -20,16 +20,24 @@ export interface CreateChatRequest {
   canvas_id: number;
   name: string;
   chat_type: 'sales_assistant' | 'whats_next';
+  node_id?: number;
 }
 
 export interface SendMessageRequest {
   content: string;
+  include_canvas_context?: boolean;
 }
 
 export const chatService = {
   // List all chats for a canvas
   listChats: async (canvasId: number): Promise<Chat[]> => {
     const response = await api.get(`/chats/canvas/${canvasId}`);
+    return response.data;
+  },
+
+  // List all chats for a specific node
+  listNodeChats: async (nodeId: number): Promise<Chat[]> => {
+    const response = await api.get(`/chats/node/${nodeId}`);
     return response.data;
   },
 

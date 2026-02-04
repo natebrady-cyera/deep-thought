@@ -26,10 +26,12 @@ class ChatCreate(BaseModel):
     canvas_id: int
     name: str
     chat_type: str  # 'sales_assistant' or 'whats_next'
+    node_id: Optional[int] = None  # For node-level chats
 
 
 class MessageCreate(BaseModel):
     content: str
+    include_canvas_context: Optional[bool] = True  # Whether to include full canvas context
 
 
 class MessageResponse(BaseModel):
@@ -65,7 +67,39 @@ async def list_canvas_chats(
     if not can_user_access_canvas(db, current_user, canvas):
         raise HTTPException(status_code=403, detail="Access denied")
 
-    chats = db.query(Chat).filter(Chat.canvas_id == canvas_id).all()
+    chats = db.query(Chat).filter(Chat.canvas_id == canvas_id, Chat.node_id == None).all()
+
+    return [
+        ChatResponse(
+            id=chat.id,
+            name=chat.name,
+            canvas_id=chat.canvas_id,
+            chat_type=chat.chat_type,
+            created_at=chat.created_at,
+            message_count=len(chat.messages),
+        )
+        for chat in chats
+    ]
+
+
+@router.get("/node/{node_id}", response_model=List[ChatResponse])
+async def list_node_chats(
+    node_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """List all chats for a specific node"""
+    from app.models.node import Node
+
+    node = db.query(Node).filter(Node.id == node_id).first()
+    if not node:
+        raise HTTPException(status_code=404, detail="Node not found")
+
+    canvas = get_canvas_by_id(db, node.canvas_id)
+    if not can_user_access_canvas(db, current_user, canvas):
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    chats = db.query(Chat).filter(Chat.node_id == node_id).all()
 
     return [
         ChatResponse(
@@ -99,7 +133,7 @@ async def create_chat(
         name=chat_data.name,
         canvas_id=chat_data.canvas_id,
         chat_type=chat_data.chat_type,
-        node_id=None,
+        node_id=chat_data.node_id,
         parent_chat_id=None,
         context_snapshot=None,  # Will be built on first message
     )
@@ -154,22 +188,43 @@ async def send_message(
     if not can_user_access_canvas(db, current_user, canvas):
         raise HTTPException(status_code=403, detail="Access denied")
 
-    # Build context from canvas
-    nodes = get_canvas_nodes(db, canvas)
-    nodes_data = [
-        {
-            'title': n.title,
-            'node_type': n.node_type,
-            'data': n.data,
-            'exclude_from_context': n.exclude_from_context,
+    # Build context from canvas or node
+    if not message_data.include_canvas_context and chat.node_id:
+        # Only include this specific node's context
+        from app.models.node import Node
+        node = db.query(Node).filter(Node.id == chat.node_id).first()
+        if node:
+            nodes_data = [
+                {
+                    'title': node.title,
+                    'node_type': node.node_type,
+                    'data': node.data,
+                    'exclude_from_context': False,
+                }
+            ]
+            canvas_data = {
+                'name': canvas.name,
+                'description': f"Focus: {node.title}",
+            }
+        else:
+            nodes_data = []
+            canvas_data = {'name': canvas.name, 'description': canvas.description}
+    else:
+        # Include full canvas context
+        nodes = get_canvas_nodes(db, canvas)
+        nodes_data = [
+            {
+                'title': n.title,
+                'node_type': n.node_type,
+                'data': n.data,
+                'exclude_from_context': n.exclude_from_context,
+            }
+            for n in nodes
+        ]
+        canvas_data = {
+            'name': canvas.name,
+            'description': canvas.description,
         }
-        for n in nodes
-    ]
-
-    canvas_data = {
-        'name': canvas.name,
-        'description': canvas.description,
-    }
 
     canvas_context = build_canvas_context(canvas_data, nodes_data)
 
