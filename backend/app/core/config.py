@@ -36,12 +36,16 @@ class Settings(BaseSettings):
 
     # AWS Bedrock (for Claude)
     aws_bedrock_region: str = "us-east-1"
-    aws_bedrock_model_id: str = "anthropic.claude-opus-4-20250514"
+    aws_bedrock_model_id: str = "us.anthropic.claude-sonnet-4-5-20250929-v1:0"
+    aws_profile: str = "claude"  # AWS profile name for SSO
     aws_access_key_id: Optional[str] = None
     aws_secret_access_key: Optional[str] = None
 
     # Anthropic API (future)
     anthropic_api_key: Optional[str] = None
+
+    # AI Configuration
+    max_context_tokens: int = 100000  # Max tokens for context
 
     # Rate Limiting
     api_rate_limit: int = 100  # requests per minute per user
