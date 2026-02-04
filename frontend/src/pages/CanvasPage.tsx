@@ -14,6 +14,7 @@ import 'reactflow/dist/style.css'
 import { canvasService } from '../services/canvasService'
 import { nodeService, Node } from '../services/nodeService'
 import GenericNode from '../components/nodes/GenericNode'
+import ChatPanel from '../components/chat/ChatPanel'
 
 const nodeTypes = {
   generic: GenericNode,
@@ -29,6 +30,7 @@ const CanvasPage: React.FC = () => {
   const [saving, setSaving] = useState(false)
   const [showAddNode, setShowAddNode] = useState(false)
   const [newNodeTitle, setNewNodeTitle] = useState('')
+  const [showChat, setShowChat] = useState(false)
 
   // Load canvas and nodes
   useEffect(() => {
@@ -201,13 +203,16 @@ const CanvasPage: React.FC = () => {
         </div>
         <div className="canvas-actions">
           {saving && <span className="saving-indicator">Saving...</span>}
+          <button className="btn btn-secondary" onClick={() => setShowChat(!showChat)}>
+            🤖 AI Assistant
+          </button>
           <button className="btn btn-primary" onClick={() => setShowAddNode(true)}>
             + Add Node
           </button>
         </div>
       </div>
 
-      <div className="canvas-container">
+      <div className={`canvas-container ${showChat ? 'chat-open' : ''}`}>
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -260,6 +265,13 @@ const CanvasPage: React.FC = () => {
             </form>
           </div>
         </div>
+      )}
+
+      {showChat && (
+        <ChatPanel
+          canvasId={Number(id)}
+          onClose={() => setShowChat(false)}
+        />
       )}
     </div>
   )

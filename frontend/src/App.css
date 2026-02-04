@@ -228,6 +228,11 @@
 .canvas-container {
   flex: 1;
   position: relative;
+  transition: margin-right 0.3s ease;
+}
+
+.canvas-container.chat-open {
+  margin-right: 700px;
 }
 
 .error {
