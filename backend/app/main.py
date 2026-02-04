@@ -7,7 +7,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.core.database import init_db
-from app.routers import auth, canvases, nodes, chats, admin, health
+from app.routers import auth, canvases, nodes, chats, admin, health, dev_auth
 import logging
 
 logger = logging.getLogger(__name__)
@@ -38,6 +38,11 @@ app.include_router(canvases.router, prefix=settings.api_prefix, tags=["canvases"
 app.include_router(nodes.router, prefix=settings.api_prefix, tags=["nodes"])
 app.include_router(chats.router, prefix=settings.api_prefix, tags=["chats"])
 app.include_router(admin.router, prefix=settings.api_prefix, tags=["admin"])
+
+# Development-only authentication (bypasses SAML)
+if settings.debug:
+    app.include_router(dev_auth.router, prefix=settings.api_prefix)
+    logger.warning("Development authentication endpoints enabled - DO NOT use in production!")
 
 
 @app.on_event("startup")
