@@ -37,6 +37,7 @@ const GenericNode: React.FC<NodeProps> = ({ data }) => {
   const [activeTab, setActiveTab] = useState<'details' | 'chat'>('details')
   const [fields, setFields] = useState(data || {})
   const titleInputRef = useRef<HTMLInputElement>(null)
+  const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
     if (isEditingTitle && titleInputRef.current) {
@@ -44,6 +45,15 @@ const GenericNode: React.FC<NodeProps> = ({ data }) => {
       titleInputRef.current.select()
     }
   }, [isEditingTitle])
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (updateTimeoutRef.current) {
+        clearTimeout(updateTimeoutRef.current)
+      }
+    }
+  }, [])
 
   const handleTitleSave = () => {
     if (title !== data.label && title.trim()) {
@@ -55,7 +65,15 @@ const GenericNode: React.FC<NodeProps> = ({ data }) => {
   const handleFieldUpdate = (fieldName: string, value: any) => {
     const updatedFields = { ...fields, [fieldName]: value }
     setFields(updatedFields)
-    data.onUpdate({ data: updatedFields })
+
+    // Debounce the API call to avoid too many updates
+    if (updateTimeoutRef.current) {
+      clearTimeout(updateTimeoutRef.current)
+    }
+
+    updateTimeoutRef.current = setTimeout(() => {
+      data.onUpdate({ data: updatedFields })
+    }, 500) // Wait 500ms after user stops typing
   }
 
   const handleDelete = () => {

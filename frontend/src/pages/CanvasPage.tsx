@@ -116,8 +116,23 @@ const CanvasPage: React.FC = () => {
   const handleNodeDataUpdate = async (nodeId: number, updates: any) => {
     try {
       await nodeService.updateNode(nodeId, updates)
-      // Reload canvas to reflect changes
-      loadCanvas()
+
+      // Update node state locally instead of reloading entire canvas
+      setNodes((nds) =>
+        nds.map((node) => {
+          if (node.id === String(nodeId)) {
+            return {
+              ...node,
+              data: {
+                ...node.data,
+                ...updates.data,
+                label: updates.title !== undefined ? updates.title : node.data.label,
+              },
+            }
+          }
+          return node
+        })
+      )
     } catch (error) {
       console.error('Failed to update node:', error)
       alert('Failed to update node')
